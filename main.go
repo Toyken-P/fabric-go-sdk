@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"fabric-go-sdk/sdkInit"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -56,7 +58,7 @@ func main() {
 
 	// create chaincode lifecycle
 	if err := sdkInit.CreateCCLifecycle(&info, 1, false, sdk); err != nil {
-		fmt.Println(">> create chaincode lifecycle error: %v", err)
+		fmt.Printf(">> create chaincode lifecycle error: %v\n", err)
 		os.Exit(-1)
 	}
 
@@ -77,34 +79,37 @@ func main() {
 	defer info.EvClient.Unregister(sdkInit.BlockListener(info.EvClient))
 	defer info.EvClient.Unregister(sdkInit.ChainCodeEventListener(info.EvClient, info.ChaincodeID))
 
-	a := []string{"set", "ID1", "123"}
-	ret, err := App.Set(a)
-	if err != nil {
-		fmt.Println(err)
+	fmt.Println("==========command format==========")
+	fmt.Println("input data: set [key] [value]")
+	fmt.Println("query data: get [key]")
+	fmt.Println("exit: exit")
+	fmt.Println("Please input command: ")
+	for {
+		inputReader := bufio.NewReader(os.Stdin)
+		input, _, err := inputReader.ReadLine()
+		if err != nil {
+			fmt.Println("input command error:", err)
+		}
+		cmd := strings.Split(string(input), " ")
+		switch cmd[0] {
+		case "set":
+			ret, err := App.Set(cmd)
+			if err != nil {
+				fmt.Println(err)
+			}
+			fmt.Println("<--- 添加信息　--->：", ret)
+		case "get":
+			response, err := App.Get(cmd)
+			fmt.Println(cmd)
+			if err != nil {
+				fmt.Println(err)
+			}
+			fmt.Println("<--- 查询信息　--->：", response)
+		case "exit":
+			break
+		}
 	}
-	fmt.Println("<--- 添加信息　--->：", ret)
-
-	a = []string{"set", "ID2", "456"}
-	ret, err = App.Set(a)
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println("<--- 添加信息　--->：", ret)
-
-	a = []string{"set", "ID3", "789"}
-	ret, err = App.Set(a)
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println("<--- 添加信息　--->：", ret)
-
-	a = []string{"get", "ID3"}
-	response, err := App.Get(a)
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println("<--- 查询信息　--->：", response)
-
-	time.Sleep(time.Second * 10)
+	fmt.Println("==========program end==========")
+	time.Sleep(time.Second * 5)
 
 }

@@ -17,7 +17,5 @@ func (t *Application) Set(args []string) (string, error) {
 		return "", err
 	}
 
-	//fmt.Println("============== response:",response)
-
 	return string(response.TransactionID), nil
 }
